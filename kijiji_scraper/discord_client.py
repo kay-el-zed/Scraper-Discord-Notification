@@ -9,16 +9,27 @@ class DiscordClient():
             self.webhook = discord.SyncWebhook.from_url(discord_config.get("webhook"), session=session)
             self.bot_name = discord_config.get("bot name")
 
+            url_params = discord_config.get("webhook").split('?')
+            if (len(url_params) > 1):
+                if (url_params[1][0:9]=="thread_id"):
+                    self.thread_id = discord.Object(url_params[1].split('=')[1], type=discord.abc.Snowflake)
+
     # Sends a Discord message with links and info of new ads
     def send_ads(self, ad_dict, discord_title):
         title = self.__create_discord_title(discord_title, len(ad_dict))
 
-        result = self.webhook.send(content=f"**{title}**", username=self.bot_name)
+        if hasattr(self,'thread_id'):
+            result = self.webhook.send(content=f"**{title}**", username=self.bot_name, thread=self.thread_id)
+        else:
+            result = self.webhook.send(content=f"**{title}**", username=self.bot_name)
 
         for ad_id in ad_dict:
             embed = self.__create_discord_embed(ad_dict, ad_id)
             
-            self.webhook.send(embed=embed, username=self.bot_name)
+            if hasattr(self,'thread_id'):
+                result = self.webhook.send(embed=embed, username=self.bot_name, thread=self.thread_id)
+            else:
+                result = self.webhook.send(embed=embed, username=self.bot_name)
 
     def __create_discord_title(self, discord_title, ad_count):
         if ad_count > 1:

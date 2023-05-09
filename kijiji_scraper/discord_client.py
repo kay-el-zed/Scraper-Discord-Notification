@@ -1,11 +1,13 @@
 #!/bin/usr/env python3
 import discord
+import requests
 
 class DiscordClient():
 
     def __init__(self, discord_config):
-        self.webhook = discord.Webhook.from_url(discord_config.get("webhook"), adapter=discord.RequestsWebhookAdapter())
-        self.bot_name = discord_config.get("bot name")
+        with requests.Session() as session:
+            self.webhook = discord.SyncWebhook.from_url(discord_config.get("webhook"), session=session)
+            self.bot_name = discord_config.get("bot name")
 
     # Sends a Discord message with links and info of new ads
     def send_ads(self, ad_dict, discord_title):
